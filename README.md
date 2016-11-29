@@ -1,1 +1,1 @@
-# Solstice-XPTech
+# XPTech
