@@ -52,7 +52,8 @@ public class SteamVRCursor : MonoBehaviour {
 		if(hitObject != targetObj){
 			if(hitObject){
 				targetObj = hitObject;
-				ObjName.text = targetObj.name;
+				Bounds b = targetObj.GetComponent<Collider>().bounds;
+				ObjName.text = b.extents.ToString();//targetObj.name;
 			}
 			else{
 				ObjName.text = "";
