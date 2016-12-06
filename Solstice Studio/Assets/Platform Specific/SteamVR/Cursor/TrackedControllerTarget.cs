@@ -1,14 +1,30 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class TrackedControllerTarget : MonoBehaviour {
+public class TrackedControllerTarget : MonoBehaviour, TargetProvider {
 
-	
-	public GameObject cursorPoint;
-	public GameObject targetObj;
+	public bool Hit { get;  set; }
+
+    /// <summary>
+    /// HitInfo property gives access
+    /// to RaycastHit public members.
+    /// </summary>
+    public RaycastHit HitInfo { get;  set; }
+
+    /// <summary>
+    /// Position of the user's gaze.
+    /// </summary>
+    public Vector3 Position { get;  set; }
+
+    /// <summary>
+    /// RaycastHit Normal direction.
+    /// </summary>
+    public Vector3 Normal { get;  set; }
+	public GameObject targetObj { get;  set; }
 	public float maxLaserDistance;
 	public float directInteractionRadius;
 	public TextMesh ObjName;
+	public GameObject hitLocation;
 	LineRenderer laserLine;
 	public bool useLaser;
 	// Use this for initialization
@@ -28,33 +44,54 @@ public class TrackedControllerTarget : MonoBehaviour {
 
 	void laserUpdate() {
 		RaycastHit cursorLoc;
-		if(Physics.Raycast(this.gameObject.transform.position, this.gameObject.transform.forward, out cursorLoc, maxLaserDistance)){
+		if(Physics.Raycast(this.transform.position, this.transform.forward, out cursorLoc, maxLaserDistance)){
+			Hit = true;
+			
+			Position = cursorLoc.point;
+			Normal = cursorLoc.normal;
+
 			changeTarget(cursorLoc.transform.gameObject);
-			cursorPoint.transform.position = cursorLoc.point;
+			hitLocation.transform.position = Position;
+			laserLine.SetPosition(1, hitLocation.transform.localPosition);
 		}
 		else{
+			Hit = false;
+			Position = this.transform.position + this.transform.forward * maxLaserDistance;
+			Normal = this.transform.forward;
 			changeTarget(null);
-			cursorPoint.transform.localPosition = new Vector3(0,0,maxLaserDistance);
+			laserLine.SetPosition(1, Vector3.forward*maxLaserDistance
+			);
 		}
-		laserLine.SetPosition(1, cursorPoint.transform.localPosition);
+		HitInfo=cursorLoc;
+		
 	}
 
 	void trackedControllerUpdate(){
-		 Collider[] hitColliders = Physics.OverlapSphere(transform.position, directInteractionRadius);
-		 if(hitColliders.Length>0){
-			 changeTarget(hitColliders[0].transform.gameObject);
-		 }
-		 else{
-			 changeTarget(null);
-		 }
-	}
+		Collider[] hitColliders = Physics.OverlapSphere(transform.position, directInteractionRadius);
+		if(hitColliders.Length>0){
+			Hit=true;
+			RaycastHit cursorLoc;
+			changeTarget(hitColliders[0].transform.gameObject);
+			Physics.Raycast(this.gameObject.transform.position, this.gameObject.transform.position-hitColliders[0].transform.position, out cursorLoc, directInteractionRadius);
+			HitInfo = cursorLoc;
+			Normal = cursorLoc.normal;
+			Position = cursorLoc.point;
+		}
+		else{
+			Hit = false;
+			Position = this.transform.position;
+			Normal = this.transform.forward;
+			changeTarget(null);
+		}
+}
 
 	void changeTarget(GameObject hitObject){
 		if(hitObject != targetObj){
 			if(hitObject){
 				targetObj = hitObject;
-				Bounds b = targetObj.GetComponent<Collider>().bounds;
-				ObjName.text = b.extents.ToString();//targetObj.name;
+				Bounds b = targetObj.GetComponent<Collider>().bounds;//debug
+				ObjName.text = b.extents.ToString();//debug
+				highlightObj(hitObject);
 			}
 			else{
 				ObjName.text = "";
@@ -64,7 +101,6 @@ public class TrackedControllerTarget : MonoBehaviour {
 	}
 	void toggleCursorType(){
 		if(useLaser){
-			cursorPoint.transform.localPosition = Vector3.zero;
 			laserLine.enabled = false;
 		}
 		else{
@@ -72,8 +108,10 @@ public class TrackedControllerTarget : MonoBehaviour {
 		}
 		useLaser=!useLaser;
 	}
-	void highlightObj(){
-		
-		
+	void highlightObj(GameObject Object){
+		Highlighter highlight = (Highlighter) Object.GetComponentInParent(typeof(Highlighter));
+			if (highlight is Highlighter){
+				highlight.Highlight(Object);
+			}
 	}
 }
