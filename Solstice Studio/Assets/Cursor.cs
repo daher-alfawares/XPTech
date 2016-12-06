@@ -25,7 +25,7 @@ public class Cursor : MonoBehaviour
         CursorProvider Provider = Object.GetComponentInParent<CursorProvider>();
         if (Provider)
         {
-            Provider.ShowCursor(Position, Normal);
+            //Provider.ShowCursor(Position, Normal);
         }
     }
 }

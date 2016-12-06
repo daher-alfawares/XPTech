@@ -3,7 +3,7 @@ using System.Collections;
 
 public class SteamVR_InputManager : MonoBehaviour {
 	public enum CursorLocation {Left, Right};
-	public GameObject cursorPrefab;
+	public GameObject targetProvider;
 	public CursorLocation cursorLocation;
 	public SteamVR_ControllerManager steamVRManager;
 	//public static GameObject leftController, rightController;
@@ -27,7 +27,6 @@ public class SteamVR_InputManager : MonoBehaviour {
 	void Start () {
 		cursorHand = steamVRManager.right;
 		offHand = steamVRManager.left;
-		cursorInstance = GameObject.Instantiate(cursorPrefab);
 		AssignCursorLocation();
 	}
 	
@@ -39,9 +38,15 @@ public class SteamVR_InputManager : MonoBehaviour {
 	void FixedUpdate(){
 		var cursorHandDevice = SteamVR_Controller.Input((int)cursorHand.GetComponent<SteamVR_TrackedObject>().index);
 		//cursor hand inputs
-		if (cursorHandDevice.GetTouchDown(SteamVR_Controller.ButtonMask.Trigger))
+		if (cursorHandDevice.GetPressDown(SteamVR_Controller.ButtonMask.Trigger))
 		{
-			//cursor hand device trigger pulled
+			if(OnCursorHandTriggerPressDown != null)
+				OnCursorHandTriggerPressDown();
+		}
+		if (cursorHandDevice.GetTouchUp(SteamVR_Controller.ButtonMask.Trigger))
+		{
+			if(OnCursorHandTriggerPressUp != null)
+				OnCursorHandTriggerPressUp();
 		}
 		if (cursorHandDevice.GetPressDown(SteamVR_Controller.ButtonMask.Grip))
 		{
@@ -76,16 +81,16 @@ public class SteamVR_InputManager : MonoBehaviour {
 	void AssignCursorLocation(){
 		switch (cursorLocation){
 			case CursorLocation.Left:
-				cursorInstance.transform.parent = steamVRManager.left.transform;
+				targetProvider.transform.parent = steamVRManager.left.transform;
 				cursorHand = steamVRManager.left;
 				offHand = steamVRManager.right;
-				cursorInstance.transform.localPosition = Vector3.zero;
+				targetProvider.transform.localPosition = Vector3.zero;
 			break;
 			case CursorLocation.Right:
-				cursorInstance.transform.parent = steamVRManager.right.transform;
+				targetProvider.transform.parent = steamVRManager.right.transform;
 				cursorHand = steamVRManager.right;
 				offHand = steamVRManager.left;
-				cursorInstance.transform.localPosition = Vector3.zero;
+				targetProvider.transform.localPosition = Vector3.zero;
 			break;
 		}
 
