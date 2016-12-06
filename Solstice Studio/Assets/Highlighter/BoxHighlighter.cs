@@ -6,12 +6,14 @@ public class BoxHighlighter : MonoBehaviour, Highlighter {
 	GameObject cornerParent;
 	public GameObject cornerPrefab;
 	public GameObject [] corners;
-	public GameObject Test;
+	Vector3 [] cornerPos = new Vector3[8];
 	// Use this for initialization
 	void Start () {
 		cornerParent = new GameObject();
+		cornerParent.transform.parent = this.transform;
 		for(int i=0; i<8; i++){
 			GameObject go = Instantiate(cornerPrefab);
+			cornerPos[i] = Vector3.zero;
 			corners[i]= go;
 			go.transform.parent = cornerParent.transform;
 			go.SetActive(false);
@@ -24,33 +26,47 @@ public class BoxHighlighter : MonoBehaviour, Highlighter {
 		corners[5].transform.rotation = Quaternion.Euler(90,0,90);
 		corners[6].transform.rotation = Quaternion.Euler(0,180,0);
 		corners[7].transform.rotation = Quaternion.Euler(0,0,-90);
-		Highlight(Test);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if(currentObject){
-			cornerParent.transform.position = currentObject.transform.position;
-		//cornerParent.transform.rotation = currentObject.transform.rotation;
+			if(currentObject.transform.hasChanged){
+				setCornerPos(currentObject.GetComponent<Collider>().bounds);
+			}
+			for(int i=0; i<8; i++){
+				corners[i].transform.position = Vector3.Slerp(corners[i].transform.position, cornerPos[i], 0.5f);
+			}	
 		}
 	}
 
-	public void Highlight(GameObject target){
-		cornerParent.transform.position = target.transform.position;
-		//cornerParent.transform.rotation = target.transform.rotation;
-		currentObject = target;
-		Bounds b = target.GetComponent<Collider>().bounds;
-		corners[0].transform.position = b.center + (new Vector3 (b.extents.x, b.extents.y, b.extents.z));
-		corners[1].transform.position = b.center + (new Vector3 (b.extents.x * -1, b.extents.y, b.extents.z));
-		corners[2].transform.position = b.center + (new Vector3 (b.extents.x * -1, b.extents.y * -1, b.extents.z));
-		corners[3].transform.position = b.center + (new Vector3 (b.extents.x * -1, b.extents.y * -1, b.extents.z * -1));
-		corners[4].transform.position = b.center + (new Vector3 (b.extents.x, b.extents.y * -1, b.extents.z * -1));
-		corners[5].transform.position = b.center + (new Vector3 (b.extents.x, b.extents.y, b.extents.z * -1));
-		corners[6].transform.position = b.center + (new Vector3 (b.extents.x, b.extents.y * -1, b.extents.z));
-		corners[7].transform.position = b.center + (new Vector3 (b.extents.x * -1, b.extents.y, b.extents.z * -1));
-
-		for(int i=0; i<8; i++){
-			corners[i].SetActive(true);
+	public void Highlight(GameObject target){	
+		if(target == null){
+			return;	
 		}
+		currentObject = target;
+		if(currentObject.GetComponent<Collider>()){
+			cornerParent.transform.position = target.transform.position;
+			Bounds b = target.GetComponent<Collider>().bounds;
+			setCornerPos(currentObject.GetComponent<Collider>().bounds);
+			for(int i=0; i<8; i++){
+				corners[i].SetActive(true);
+			}
+		}
+	}
+
+	void setCornerPos(Bounds b){
+		cornerPos[0] = b.center + (new Vector3 (b.extents.x, b.extents.y, b.extents.z));
+		cornerPos[1] = b.center + (new Vector3 (b.extents.x * -1, b.extents.y, b.extents.z));
+		cornerPos[2] = b.center + (new Vector3 (b.extents.x * -1, b.extents.y * -1, b.extents.z));
+		cornerPos[3] = b.center + (new Vector3 (b.extents.x * -1, b.extents.y * -1, b.extents.z * -1));
+		cornerPos[4] = b.center + (new Vector3 (b.extents.x, b.extents.y * -1, b.extents.z * -1));
+		cornerPos[5] = b.center + (new Vector3 (b.extents.x, b.extents.y, b.extents.z * -1));
+		cornerPos[6] = b.center + (new Vector3 (b.extents.x, b.extents.y * -1, b.extents.z));
+		cornerPos[7] = b.center + (new Vector3 (b.extents.x * -1, b.extents.y, b.extents.z * -1));
+	}
+
+	public void UnHighlight(){
+
 	}
 }

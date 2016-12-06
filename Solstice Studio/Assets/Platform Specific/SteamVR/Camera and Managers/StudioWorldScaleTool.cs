@@ -6,10 +6,10 @@ public class StudioWorldScaleTool : MonoBehaviour {
 	public Transform HMD;
 	public float scaleFactor;
 	float resetScaleTimer;
-	public float resetScaleLength = 2;
 	float distanceBetweenHands;
 	float distanceBetweenHandsPrev;
 	float scalingStartDistance;
+	float startHeight;
 	bool cursorGripPressed, offhandGripPressed, scaling;
 	void OnEnable () {
 		scaling = false;
@@ -25,6 +25,7 @@ public class StudioWorldScaleTool : MonoBehaviour {
 	void CursorGripPressDown(){
 		cursorGripPressed = true;
 		scaling = false;
+		startHeight = SteamVR_InputManager.cursorHand.transform.position.y;
 	}
 
 	void CursorGripPressUp(){
@@ -48,10 +49,8 @@ public class StudioWorldScaleTool : MonoBehaviour {
 			distanceBetweenHandsPrev=distanceBetweenHands;
 		}
 		else{
-			resetScaleTimer-= Time.deltaTime;
-			if(resetScaleTimer<0){
-				
-			}
+			studioWorld.transform.position += Vector3.up *(SteamVR_InputManager.cursorHand.transform.position.y-startHeight) ;
+			startHeight= SteamVR_InputManager.cursorHand.transform.position.y;
 		}	
 	}
 
@@ -62,8 +61,5 @@ public class StudioWorldScaleTool : MonoBehaviour {
 
 	void OffhandGripPressUp(){
 		offhandGripPressed = false;
-	}
-	void resetTimer(){
-		resetScaleTimer = resetScaleLength;
 	}
 }
